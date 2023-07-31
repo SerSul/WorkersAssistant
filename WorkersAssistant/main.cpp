@@ -32,7 +32,7 @@ int main()
     }
     catch (sql::SQLException e)
     {
-        cout << "Could not connect to server. Error message: " << e.what() << endl;
+        cout << "Невозможно подключиться к серверу. Сообщение ошибки: " << e.what() << endl;
         system("pause");
         exit(1);
     }
