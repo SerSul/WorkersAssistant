@@ -13,18 +13,19 @@
 
 class Manager {
 public:
-    // Отобразить список сотрудников
+    // РћС‚РѕР±СЂР°Р·РёС‚СЊ СЃРїРёСЃРѕРє СЃРѕС‚СЂСѓРґРЅРёРєРѕРІ
     void showEmployeeList(sql::Connection* con);
 
-    // Добавить сотрудника в базу данных
+    // Р”РѕР±Р°РІРёС‚СЊ СЃРѕС‚СЂСѓРґРЅРёРєР° РІ Р±Р°Р·Сѓ РґР°РЅРЅС‹С…
     void addEmployee(sql::Connection* con, employee& employee);
 
-    // Редактировать информацию о сотруднике
+    // Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ СЃРѕС‚СЂСѓРґРЅРёРєРµ
     void editEmployeeInfo(sql::Connection* con, int employeeId, std::string field);
 
-    // Удалить сотрудника из базы данных по его ID
+    // РЈРґР°Р»РёС‚СЊ СЃРѕС‚СЂСѓРґРЅРёРєР° РёР· Р±Р°Р·С‹ РґР°РЅРЅС‹С… РїРѕ РµРіРѕ ID
     void deleteEmployee(sql::Connection* con, int employeeId);
     void findEmployeeById(sql::Connection* con, int employeeId);
+
 };
 
 #endif // MANAGER_H
