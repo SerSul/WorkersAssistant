@@ -13,11 +13,12 @@ string password = "";
 
 int main()
 {
-    std::cout << "Введите хост";
+    setlocale(LC_ALL, "ru");
+    std::cout << "Введите хост ";
     std::cin >> server;
-    std::cout << "Введите пользователя";
+    std::cout << "\nВведите пользователя ";
     std::cin >> username;
-    std::cout << "Введите пароль";
+    std::cout << "\nВведите пароль ";
     std::cin >> password;
     setlocale(LC_ALL, "Russian");
     sql::Driver* driver;
