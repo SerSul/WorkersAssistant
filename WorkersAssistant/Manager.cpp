@@ -1,5 +1,7 @@
 #include "manager.h"
 
+
+
 void displayEmployeeInfo(const sql::ResultSet& resEmployees, sql::ResultSet& resTasks) {
     int id = resEmployees.getInt("id");
     std::string post = resEmployees.getString("post");
@@ -15,16 +17,16 @@ void displayEmployeeInfo(const sql::ResultSet& resEmployees, sql::ResultSet& res
         deadline = resTasks.getString("deadline");
     }
 
-    std::cout << "--------------- Employee ID: " << id << " ---------------" << std::endl;
+    std::cout << "--------------- Информация о сотруднике с ID: " << id << " ---------------" << std::endl;
     std::cout << "ID: " << id << std::endl;
-    std::cout << "Position: " << post << std::endl;
-    std::cout << "First Name: " << first_name << std::endl;
-    std::cout << "Last Name: " << last_name << std::endl;
-    std::cout << "Monthly Pay: " << monthly_pay << std::endl;
-    std::cout << "Hire Date: " << hire_date << std::endl;
-    std::cout << "In Staff: " << (in_staff ? "Yes" : "No") << std::endl;
-    std::cout << "Task: " << task << std::endl;
-    std::cout << "Deadline: " << deadline << std::endl;
+    std::cout << "Должность: " << post << std::endl;
+    std::cout << "Имя: " << first_name << std::endl;
+    std::cout << "Фамилия: " << last_name << std::endl;
+    std::cout << "Ежемесячная Зарплата: " << monthly_pay << std::endl;
+    std::cout << "Дата приема на работу: " << hire_date << std::endl;
+    std::cout << "В штате: " << (in_staff ? "Да" : "Нет") << std::endl;
+    std::cout << "Задание: " << task << std::endl;
+    std::cout << "Срок исполнения: " << deadline << std::endl;
 }
 
 void Manager::showEmployeeList(sql::Connection* con) {
@@ -43,7 +45,7 @@ void Manager::showEmployeeList(sql::Connection* con) {
         delete resEmployees;
     }
     catch (sql::SQLException& e) {
-        std::cout << "Error displaying employee list: " << e.what() << std::endl;
+        std::cout << "Ошибка при отображении списка сотрудников: " << e.what() << std::endl;
     }
 }
 
@@ -75,7 +77,7 @@ void addEmployeeToDatabase(sql::Connection* con, employee& employee) {
         delete pstmtTask;
     }
     catch (sql::SQLException& e) {
-        std::cout << "Error adding employee to the database: " << e.what() << std::endl;
+        std::cout << "Ошибка при добавлении сотрудника в базу данных: " << e.what() << std::endl;
     }
 }
 
@@ -86,93 +88,94 @@ void Manager::addEmployee(sql::Connection* con, employee& employee) {
 
 void Manager::editEmployeeInfo(sql::Connection* con, int employeeId, std::string ch) {
     std::system("cls");
-    try {
-        sql::Statement* stmt = con->createStatement();
-        sql::ResultSet* res = stmt->executeQuery("SELECT * FROM employees WHERE id = " + std::to_string(employeeId));
+  
+        try {
+            sql::Statement* stmt = con->createStatement();
+            sql::ResultSet* res = stmt->executeQuery("SELECT * FROM employees WHERE id = " + std::to_string(employeeId));
 
-        if (res->next()) {
-            std::cout << "������� ���������� � ����������:" << std::endl;
-            std::cout << "ID: " << employeeId << std::endl;
-            std::cout << "Post: " << res->getString("post") << std::endl;
-            std::cout << "First Name: " << res->getString("first_name") << std::endl;
-            std::cout << "Last Name: " << res->getString("last_name") << std::endl;
-            std::cout << "Monthly Pay: " << res->getDouble("monthly_pay") << std::endl;
-            std::cout << "Hire Date: " << res->getString("hire_date") << std::endl;
-            std::cout << "In Staff: " << res->getString("in_staff") << std::endl;
-        }
-        else {
-            std::cout << "��������� � ID " << employeeId << " �� ������." << std::endl;
-        }
-
-        res = stmt->executeQuery("SELECT * FROM task WHERE id = " + std::to_string(employeeId));
-
-        if (res->next()) {
-            std::cout << "Task: " << res->getString("task") << std::endl;
-            std::cout << "DeadLine: " << res->getString("deadline") << std::endl;
-        }
-        delete res;
-
-        if (ch == "post" || ch == "first_name" || ch == "last_name" || ch == "hire_date" || ch == "monthly_pay" || ch == "in_staff") {
-            std::string newValue;
-            std::cout << "������� ����� ��������: ";
-            std::cin.ignore(); // Clear the buffer before std::getline()
-            std::getline(std::cin, newValue);
-            sql::PreparedStatement* pstmt = con->prepareStatement(
-                "UPDATE employees SET " + ch + " = ? WHERE id = ?"
-            );
-            pstmt->setString(1, newValue);
-
-            if (ch == "monthly_pay") {
-                double newMonthlyPay;
-                std::cout << "������� ����� ��������: ";
-                while (!(std::cin >> newMonthlyPay)) {
-                    std::cin.clear();
-                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                    std::cout << "������������ ����. ����������, ������� �����: ";
-                }
-                pstmt->setDouble(1, newMonthlyPay);
+            if (res->next()) {
+                std::cout << "Текущая информация о сотруднике:" << std::endl;
+                std::cout << "ID: " << employeeId << std::endl;
+                std::cout << "Должность: " << res->getString("post") << std::endl;
+                std::cout << "Имя: " << res->getString("first_name") << std::endl;
+                std::cout << "Фамилия: " << res->getString("last_name") << std::endl;
+                std::cout << "Ежемесячная Зарплата: " << res->getDouble("monthly_pay") << std::endl;
+                std::cout << "Дата приема на работу: " << res->getString("hire_date") << std::endl;
+                std::cout << "В штате: " << res->getString("in_staff") << std::endl;
             }
-            else if (ch == "in_staff") {
-                bool inStaff;
-                std::cout << "� ������������� �����������? (1 - ��, 0 - ���): ";
-                while (!(std::cin >> inStaff)) {
-                    std::cin.clear();
-                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                    std::cout << "������������ ����. ����������, ������� 1 ��� 0: ";
-                }
-                pstmt->setString(1, inStaff ? "T" : "F");
+            else {
+                std::cout << "Сотрудник с ID " << employeeId << " не найден." << std::endl;
             }
-            pstmt->setInt(2, employeeId);
-            pstmt->execute();
-            delete pstmt;
-            std::cout << "���������� � ���������� � ID " << employeeId << " ������� ���������." << std::endl;
-        }
-        else if (ch == "task" || ch == "deadline") {
-            std::string newValue;
-            std::cout << "������� ����� ��������: ";
-            std::cin.ignore(); // Clear the buffer before std::getline()
-            std::getline(std::cin, newValue);
-            sql::PreparedStatement* pstmtTask = con->prepareStatement(
-                "UPDATE task SET " + ch + " = ? WHERE id = ?"
-            );
-            pstmtTask->setString(1, newValue);
-            pstmtTask->setInt(2, employeeId);
-            pstmtTask->execute();
-            delete pstmtTask;
-            std::cout << "���������� � ������ ���������� � ID " << employeeId << " ������� ���������." << std::endl;
-        }
-        else {
-            std::cout << "������������ ����� ���� ��� ��������������." << std::endl;
-        }
 
-        delete stmt;
-    }
-    catch (sql::SQLException& e) {
-        std::cout << "������ ��� �������������� ���������� � ����������: " << e.what() << std::endl;
-    }
+            res = stmt->executeQuery("SELECT * FROM task WHERE id = " + std::to_string(employeeId));
+
+            if (res->next()) {
+                std::cout << "Задание: " << res->getString("task") << std::endl;
+                std::cout << "Срок исполнения: " << res->getString("deadline") << std::endl;
+            }
+            delete res;
+
+            if (ch == "post" || ch == "first_name" || ch == "last_name" || ch == "hire_date" || ch == "monthly_pay" || ch == "in_staff") {
+                std::string newValue;
+                std::cout << "Введите новое значение: ";
+                std::cin.ignore(); // Очищаем буфер перед std::getline()
+                std::getline(std::cin, newValue);
+                sql::PreparedStatement* pstmt = con->prepareStatement(
+                    "UPDATE employees SET " + ch + " = ? WHERE id = ?"
+                );
+                pstmt->setString(1, newValue);
+
+                if (ch == "monthly_pay") {
+                    double newMonthlyPay;
+                    std::cout << "Введите новое значение: ";
+                    while (!(std::cin >> newMonthlyPay)) {
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                        std::cout << "Некорректный ввод. Пожалуйста, введите число: ";
+                    }
+                    pstmt->setDouble(1, newMonthlyPay);
+                }
+                else if (ch == "in_staff") {
+                    bool inStaff;
+                    std::cout << "Сотрудник в штате? (1 - Да, 0 - Нет): ";
+                    while (!(std::cin >> inStaff)) {
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                        std::cout << "Некорректный ввод. Пожалуйста, введите 1 или 0: ";
+                    }
+                    pstmt->setString(1, inStaff ? "T" : "F");
+                }
+                pstmt->setInt(2, employeeId);
+                pstmt->execute();
+                delete pstmt;
+                std::cout << "Информация о сотруднике с ID " << employeeId << " успешно обновлена." << std::endl;
+            }
+            else if (ch == "task" || ch == "deadline") {
+                std::string newValue;
+                std::cout << "Введите новое значение: ";
+                std::cin.ignore(); // Очищаем буфер перед std::getline()
+                std::getline(std::cin, newValue);
+                sql::PreparedStatement* pstmtTask = con->prepareStatement(
+                    "UPDATE task SET " + ch + " = ? WHERE id = ?"
+                );
+                pstmtTask->setString(1, newValue);
+                pstmtTask->setInt(2, employeeId);
+                pstmtTask->execute();
+                delete pstmtTask;
+                std::cout << "Информация о задании сотрудника с ID " << employeeId << " успешно обновлена." << std::endl;
+            }
+            else {
+                std::cout << "Неверный выбор для редактирования поля." << std::endl;
+            }
+
+            delete stmt;
+        }
+        catch (sql::SQLException& e) {
+            std::cout << "Ошибка при редактировании информации о сотруднике: " << e.what() << std::endl;
+        }
+    
+
 }
-
-
 
 void Manager::deleteEmployee(sql::Connection* con, int employeeId) {
     system("cls");
@@ -191,10 +194,10 @@ void Manager::deleteEmployee(sql::Connection* con, int employeeId) {
         pstmtTask->execute();
         delete pstmtTask;
 
-        std::cout << "Employee with ID " << employeeId << " successfully deleted." << std::endl;
+        std::cout << "Сотрудник с ID " << employeeId << " успешно удален." << std::endl;
     }
     catch (sql::SQLException& e) {
-        std::cout << "Error deleting employee with ID " << employeeId << ": " << e.what() << std::endl;
+        std::cout << "Ошибка при удалении сотрудника с ID " << employeeId << ": " << e.what() << std::endl;
     }
 }
 
@@ -214,12 +217,13 @@ void Manager::findEmployeeById(sql::Connection* con, int employeeId) {
             delete resTasks;
         }
         else {
-            std::cout << "Employee with ID " << employeeId << " not found." << std::endl;
+            std::cout << "Сотрудник с ID " << employeeId << " не найден." << std::endl;
         }
 
         delete pstmt;
     }
     catch (sql::SQLException& e) {
-        std::cout << "Error finding employee with ID " << employeeId << ": " << e.what() << std::endl;
+        std::cout << "Ошибка при поиске сотрудника с ID " << employeeId << ": " << e.what() << std::endl;
     }
 }
+
