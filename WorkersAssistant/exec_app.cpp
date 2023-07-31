@@ -19,7 +19,7 @@ void exec_app::menu(sql::Connection* con) {
         std::cin >> choice;
 
         if (choice == 1) {
-            manager.employeelist(con);
+            manager.showEmployeeList(con);
         }
         else if (choice == 2) {
             int id;
@@ -53,24 +53,24 @@ void exec_app::menu(sql::Connection* con) {
             std::cin >> deadline;
             // Создаем объект сотрудника и передаем его в функцию addemployee
             employee newEmployee(id, post, first_name, last_name, monthly_pay, hire_date, in_staff, task, deadline);
-            manager.addemployee(con, newEmployee);
+            manager.addEmployee(con, newEmployee);
         }
         else if (choice == 3) {
             int id;
             std::string ch;
             std::cout << "Введите ID сотрудника: ";
             std::cin >> id;
-            std::cout << "Выберите поле для редактирования (post, first_name, last_name, monthly_pay, hire_date, in_staff, description_, deadline_): ";
+            std::cout << "Выберите поле для редактирования (post, first_name, last_name, monthly_pay, hire_date, in_staff, task, deadline): ";
             std::cin >> ch;
 
 
-            manager.editinfo(con, id, ch);
+            manager.editEmployeeInfo(con, id, ch);
         }
         else if (choice == 4) {
             int id;
             std::cout << "Введите ID сотрудника для удаления: ";
             std::cin >> id;
-            manager.deleteemployee(con, id);
+            manager.deleteEmployee(con, id);
         }
 
         else if (choice == 5) {

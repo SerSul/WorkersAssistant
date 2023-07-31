@@ -13,10 +13,17 @@
 
 class Manager {
 public:
-    void employeelist(sql::Connection* con);
-    void addemployee(sql::Connection* con, employee& employee);
-    void editinfo(sql::Connection* con, int employeeId, std::string ch);
-    void deleteemployee(sql::Connection* con, int employeeId);
+    // Отобразить список сотрудников
+    void showEmployeeList(sql::Connection* con);
+
+    // Добавить сотрудника в базу данных
+    void addEmployee(sql::Connection* con, employee& employee);
+
+    // Редактировать информацию о сотруднике
+    void editEmployeeInfo(sql::Connection* con, int employeeId, std::string field);
+
+    // Удалить сотрудника из базы данных по его ID
+    void deleteEmployee(sql::Connection* con, int employeeId);
     void findEmployeeById(sql::Connection* con, int employeeId);
 };
 
