@@ -3,14 +3,17 @@
 #include <string>
 
 void exec_app::menu(sql::Connection* con) {
+    setlocale(LC_ALL, "Russian");
     while (true) {
-        std::cout << "Р“Р»Р°РІРЅРѕРµ РјРµРЅСЋ" << std::endl;
-        std::cout << "1. РџСЂРѕСЃРјРѕС‚СЂ СЃРїРёСЃРєР° СЃРѕС‚СЂСѓРґРЅРёРєРѕРІ" << std::endl;
-        std::cout << "2. Р”РѕР±Р°РІРёС‚СЊ РЅРѕРІРѕРіРѕ СЃРѕС‚СЂСѓРґРЅРёРєР°" << std::endl;
-        std::cout << "3. Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ СЃРѕС‚СЂСѓРґРЅРёРєРµ" << std::endl;
-        std::cout << "4. РЈРґР°Р»РёС‚СЊ СЃРѕС‚СЂСѓРґРЅРёРєР°" << std::endl;
-        std::cout << "8. Р’С‹С…РѕРґ" << std::endl;
-        std::cout << "Р’С‹Р±РµСЂРёС‚Рµ РѕРїС†РёСЋ: ";
+        std::cout << "Главное меню" << std::endl;
+        std::cout << "1. Просмотр списка сотрудников" << std::endl;
+        std::cout << "2. Добавить нового сотрудника" << std::endl;
+        std::cout << "3. Редактировать информацию о сотруднике" << std::endl;
+        std::cout << "4. Удалить сотрудника" << std::endl;
+        std::cout << "5. Найти сотрудника по ID" << std::endl;
+        std::cout << "6. Выход" << std::endl;
+        std::cout << "Выберите опцию: ";
+
 
         int choice;
         std::cin >> choice;
@@ -21,54 +24,66 @@ void exec_app::menu(sql::Connection* con) {
         else if (choice == 2) {
             int id;
             double monthly_pay;
-            std::string post, first_name, last_name, hire_date;
+            std::string post, first_name, last_name, hire_date, task, deadline;
             bool in_staff;
 
-            std::cout << "Р’РІРµРґРёС‚Рµ ID СЃРѕС‚СЂСѓРґРЅРёРєР°: ";
+            std::cout << "Введите ID сотрудника: ";
             std::cin >> id;
 
-            std::cout << "Р’РІРµРґРёС‚Рµ РґРѕР»Р¶РЅРѕСЃС‚СЊ СЃРѕС‚СЂСѓРґРЅРёРєР°: ";
+            std::cout << "Введите должность сотрудника: ";
             std::cin >> post;
 
-            std::cout << "Р’РІРµРґРёС‚Рµ РёРјСЏ СЃРѕС‚СЂСѓРґРЅРёРєР°: ";
+            std::cout << "Введите имя сотрудника: ";
             std::cin >> first_name;
 
-            std::cout << "Р’РІРµРґРёС‚Рµ С„Р°РјРёР»РёСЋ СЃРѕС‚СЂСѓРґРЅРёРєР°: ";
+            std::cout << "Введите фамилию сотрудника: ";
             std::cin >> last_name;
 
-            std::cout << "Р’РІРµРґРёС‚Рµ РјРµСЃСЏС‡РЅСѓСЋ Р·Р°СЂРїР»Р°С‚Сѓ СЃРѕС‚СЂСѓРґРЅРёРєР°: ";
+            std::cout << "Введите месячную зарплату сотрудника: ";
             std::cin >> monthly_pay;
 
-            std::cout << "Р’РІРµРґРёС‚Рµ РґР°С‚Сѓ РїСЂРёРµРјР° РЅР° СЂР°Р±РѕС‚Сѓ (Р“Р“Р“Р“-РњРњ-Р”Р”): ";
+            std::cout << "Введите дату приема на работу (ГГГГ-ММ-ДД): ";
             std::cin >> hire_date;
 
-            std::cout << "Р’ СЃРѕС‚СЂСѓРґРЅРёС‡Р°РµС‚Рµ СЃРѕС‚СЂСѓРґРЅРёРєРѕРј? (1 - Р”Р°, 0 - РќРµС‚): ";
+            std::cout << "В сотрудничаете сотрудником? (1 - Да, 0 - Нет): ";
             std::cin >> in_staff;
-
-            // РЎРѕР·РґР°РµРј РѕР±СЉРµРєС‚ СЃРѕС‚СЂСѓРґРЅРёРєР° Рё РїРµСЂРµРґР°РµРј РµРіРѕ РІ С„СѓРЅРєС†РёСЋ addemployee
-            employee newEmployee(id, post, first_name, last_name, monthly_pay, hire_date, in_staff);
+            std::cout << "Введите задачу";
+            std::cin >> task;
+            std::cout << "Введите дедлайн";
+            std::cin >> deadline;
+            // Создаем объект сотрудника и передаем его в функцию addemployee
+            employee newEmployee(id, post, first_name, last_name, monthly_pay, hire_date, in_staff, task, deadline);
             manager.addemployee(con, newEmployee);
         }
         else if (choice == 3) {
             int id;
             std::string ch;
-            std::cout << "Р’РІРµРґРёС‚Рµ ID СЃРѕС‚СЂСѓРґРЅРёРєР°: ";
+            std::cout << "Введите ID сотрудника: ";
             std::cin >> id;
-            std::cout << "Р’С‹Р±РµСЂРёС‚Рµ РїРѕР»Рµ РґР»СЏ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ (post, first_name, last_name, monthly_pay, hire_date, in_staff): ";
+            std::cout << "Выберите поле для редактирования (post, first_name, last_name, monthly_pay, hire_date, in_staff, description_, deadline_): ";
             std::cin >> ch;
+
+
             manager.editinfo(con, id, ch);
         }
         else if (choice == 4) {
             int id;
-            std::cout << "Р’РІРµРґРёС‚Рµ ID СЃРѕС‚СЂСѓРґРЅРёРєР° РґР»СЏ СѓРґР°Р»РµРЅРёСЏ: ";
+            std::cout << "Введите ID сотрудника для удаления: ";
             std::cin >> id;
             manager.deleteemployee(con, id);
         }
-        else if (choice == 8) {
+
+        else if (choice == 5) {
+            int id;
+            std::cout << "Введите ID сотрудника: ";
+            std::cin >> id;
+            manager.findEmployeeById(con, id);
+        }
+        else if (choice == 6) {
             break;
         }
         else {
-            std::cout << "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РІС‹Р±РѕСЂ РѕРїС†РёРё." << std::endl;
+            std::cout << "Некорректный выбор опции." << std::endl;
         }
     }
 }

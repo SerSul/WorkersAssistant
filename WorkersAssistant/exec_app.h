@@ -5,6 +5,7 @@
 
 class exec_app {
 public:
+
     Manager manager;
     void menu(sql::Connection* con);
 };

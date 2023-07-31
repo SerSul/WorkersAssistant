@@ -1,19 +1,31 @@
-#include "manager.h"
+#include "Manager.h"
 
 void Manager::employeelist(sql::Connection* con) {
     std::system("cls");
     try {
         sql::Statement* stmt = con->createStatement();
-        sql::ResultSet* res = stmt->executeQuery("SELECT * FROM employees");
-        while (res->next()) {
-            int id = res->getInt("id");
-            std::string post = res->getString("post");
-            std::string first_name = res->getString("first_name");
-            std::string last_name = res->getString("last_name");
-            std::string monthly_pay = res->getString("monthly_pay");
-            std::string hire_date = res->getString("hire_date");
-            std::string in_staff = res->getString("in_staff");
+        sql::ResultSet* resEmployees = stmt->executeQuery("SELECT * FROM employees");
 
+        while (resEmployees->next()) {
+            int id = resEmployees->getInt("id");
+            std::string post = resEmployees->getString("post");
+            std::string first_name = resEmployees->getString("first_name");
+            std::string last_name = resEmployees->getString("last_name");
+            std::string monthly_pay = resEmployees->getString("monthly_pay");
+            std::string hire_date = resEmployees->getString("hire_date");
+            std::string in_staff = resEmployees->getString("in_staff");
+
+            // Извлекаем данные из таблицы "task" для данного сотрудника
+            sql::ResultSet* resTasks = stmt->executeQuery("SELECT * FROM task WHERE id = " + std::to_string(id));
+            std::string task;
+            std::string deadline;
+
+            if (resTasks->next()) {
+                task = resTasks->getString("task");
+                deadline = resTasks->getString("deadline");
+            }
+
+            // Выводим информацию о сотруднике и его задаче (если есть)
             std::cout << "--------------- " << id << std::endl;
             std::cout << "ID: " << id << std::endl;
             std::cout << "Post: " << post << std::endl;
@@ -22,10 +34,16 @@ void Manager::employeelist(sql::Connection* con) {
             std::cout << "Monthly Pay: " << monthly_pay << std::endl;
             std::cout << "Hire Date: " << hire_date << std::endl;
             std::cout << "In Staff: " << in_staff << std::endl;
+            std::cout << "Task: " << task << std::endl;
+            std::cout << "Deadline: " << deadline << std::endl;
+
+            delete resTasks; // Освобождаем память после использования результата запроса "task"
         }
+
+        delete resEmployees; // Освобождаем память после использования результата запроса "employees"
     }
     catch (sql::SQLException& e) {
-        std::cout << "РћС€РёР±РєР° РїСЂРё РІС‹РІРѕРґРµ С‚Р°Р±Р»РёС†С‹: " << e.what() << std::endl;
+        std::cout << "Ошибка при выводе таблицы: " << e.what() << std::endl;
     }
 }
 
@@ -44,11 +62,24 @@ void Manager::addemployee(sql::Connection* con, employee& employee) {
         pstmt->setString(6, employee.getHireDate());
         pstmt->setString(7, employee.isInStaff() ? "T" : "F");
 
+        // Execute the insertion query for the "employees" table
         pstmt->execute();
         delete pstmt;
+
+        // Assuming the employee object contains valid data for the "task" table
+        sql::PreparedStatement* pstmtTask = con->prepareStatement(
+            "INSERT INTO task (id, task, deadline) VALUES (?, ?, ?)"
+        );
+        pstmtTask->setInt(1, employee.getId());
+        pstmtTask->setString(2, employee.getTask());       // Make sure employee.getTask() returns a valid value
+        pstmtTask->setString(3, employee.getDeadline());   // Make sure employee.getDeadline() returns a valid value
+
+        // Execute the insertion query for the "task" table
+        pstmtTask->execute();
+        delete pstmtTask;
     }
     catch (sql::SQLException& e) {
-        std::cout << "РћС€РёР±РєР° РїСЂРё РґРѕР±Р°РІР»РµРЅРёРё СЂР°Р±РѕС‚РЅРёРєР° РІ С‚Р°Р±Р»РёС†Сѓ: " << e.what() << std::endl;
+        std::cout << "Ошибка при добавлении работника в таблицу: " << e.what() << std::endl;
     }
 }
 
@@ -57,8 +88,9 @@ void Manager::editinfo(sql::Connection* con, int employeeId, std::string ch) {
     try {
         sql::Statement* stmt = con->createStatement();
         sql::ResultSet* res = stmt->executeQuery("SELECT * FROM employees WHERE id = " + std::to_string(employeeId));
+
         if (res->next()) {
-            std::cout << "РўРµРєСѓС‰Р°СЏ РёРЅС„РѕСЂРјР°С†РёСЏ Рѕ СЃРѕС‚СЂСѓРґРЅРёРєРµ:" << std::endl;
+            std::cout << "Текущая информация о сотруднике:" << std::endl;
             std::cout << "ID: " << employeeId << std::endl;
             std::cout << "Post: " << res->getString("post") << std::endl;
             std::cout << "First Name: " << res->getString("first_name") << std::endl;
@@ -66,56 +98,76 @@ void Manager::editinfo(sql::Connection* con, int employeeId, std::string ch) {
             std::cout << "Monthly Pay: " << res->getDouble("monthly_pay") << std::endl;
             std::cout << "Hire Date: " << res->getString("hire_date") << std::endl;
             std::cout << "In Staff: " << res->getString("in_staff") << std::endl;
+        }
+        else {
+            std::cout << "Сотрудник с ID " << employeeId << " не найден." << std::endl;
+        }
 
-            // Р’С‹Р±РѕСЂ РїРѕР»СЏ РґР»СЏ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ
-            std::cout << "Р’С‹Р±РµСЂРёС‚Рµ РїРѕР»Рµ РґР»СЏ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ (post, first_name, last_name, monthly_pay, hire_date, in_staff): ";
-            std::cin >> ch;
+        res = stmt->executeQuery("SELECT * FROM task WHERE id = " + std::to_string(employeeId));
 
+        if (res->next()) {
+            std::cout << "Task: " << res->getString("task") << std::endl;
+            std::cout << "DeadLine: " << res->getString("deadline") << std::endl;
+        }
+        delete res;
+
+        if (ch == "post" || ch == "first_name" || ch == "last_name" || ch == "hire_date" || ch == "monthly_pay" || ch == "in_staff") {
+            std::string newValue;
+            std::cout << "Введите новое значение: ";
+            std::cin.ignore(); // Clear the buffer before std::getline()
+            std::getline(std::cin, newValue);
             sql::PreparedStatement* pstmt = con->prepareStatement(
                 "UPDATE employees SET " + ch + " = ? WHERE id = ?"
             );
+            pstmt->setString(1, newValue);
 
-            if (ch == "post" || ch == "first_name" || ch == "last_name" || ch == "hire_date") {
-                std::string newValue;
-                std::cout << "Р’РІРµРґРёС‚Рµ РЅРѕРІРѕРµ Р·РЅР°С‡РµРЅРёРµ: ";
-                std::cin.ignore();
-                std::getline(std::cin, newValue);
-                pstmt->setString(1, newValue);
-            }
-            else if (ch == "monthly_pay") {
-                double newValue;
-                std::cout << "Р’РІРµРґРёС‚Рµ РЅРѕРІРѕРµ Р·РЅР°С‡РµРЅРёРµ: ";
-                std::cin >> newValue;
-                pstmt->setDouble(1, newValue);
+            if (ch == "monthly_pay") {
+                double newMonthlyPay;
+                std::cout << "Введите новое значение: ";
+                while (!(std::cin >> newMonthlyPay)) {
+                    std::cin.clear();
+                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    std::cout << "Некорректный ввод. Пожалуйста, введите число: ";
+                }
+                pstmt->setDouble(1, newMonthlyPay);
             }
             else if (ch == "in_staff") {
-                bool newValue;
-                std::cout << "Р’ СЃРѕС‚СЂСѓРґРЅРёС‡Р°РµС‚Рµ СЃРѕС‚СЂСѓРґРЅРёРєРѕРј? (1 - Р”Р°, 0 - РќРµС‚): ";
-                std::cin >> newValue;
-                pstmt->setString(1, newValue ? "T" : "F");
+                bool inStaff;
+                std::cout << "В сотрудничаете сотрудником? (1 - Да, 0 - Нет): ";
+                while (!(std::cin >> inStaff)) {
+                    std::cin.clear();
+                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    std::cout << "Некорректный ввод. Пожалуйста, введите 1 или 0: ";
+                }
+                pstmt->setString(1, inStaff ? "T" : "F");
             }
-            else {
-                std::cout << "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РІС‹Р±РѕСЂ РїРѕР»СЏ РґР»СЏ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ." << std::endl;
-                delete pstmt;
-                delete stmt;
-                return;
-            }
-
             pstmt->setInt(2, employeeId);
             pstmt->execute();
-
             delete pstmt;
-
-            std::cout << "РРЅС„РѕСЂРјР°С†РёСЏ Рѕ СЃРѕС‚СЂСѓРґРЅРёРєРµ СЃ ID " << employeeId << " СѓСЃРїРµС€РЅРѕ РѕР±РЅРѕРІР»РµРЅР°." << std::endl;
+            std::cout << "Информация о сотруднике с ID " << employeeId << " успешно обновлена." << std::endl;
+        }
+        else if (ch == "task" || ch == "deadline") {
+            std::string newValue;
+            std::cout << "Введите новое значение: ";
+            std::cin.ignore(); // Clear the buffer before std::getline()
+            std::getline(std::cin, newValue);
+            sql::PreparedStatement* pstmtTask = con->prepareStatement(
+                "UPDATE task SET " + ch + " = ? WHERE id = ?"
+            );
+            pstmtTask->setString(1, newValue);
+            pstmtTask->setInt(2, employeeId);
+            pstmtTask->execute();
+            delete pstmtTask;
+            std::cout << "Информация о задаче сотрудника с ID " << employeeId << " успешно обновлена." << std::endl;
         }
         else {
-            std::cout << "РЎРѕС‚СЂСѓРґРЅРёРє СЃ ID " << employeeId << " РЅРµ РЅР°Р№РґРµРЅ." << std::endl;
+            std::cout << "Некорректный выбор поля для редактирования." << std::endl;
         }
 
         delete stmt;
     }
     catch (sql::SQLException& e) {
-        std::cout << "РћС€РёР±РєР° РїСЂРё СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёРё РёРЅС„РѕСЂРјР°С†РёРё Рѕ СЃРѕС‚СЂСѓРґРЅРёРєРµ: " << e.what() << std::endl;
+        std::cout << "Ошибка при редактировании информации о сотруднике: " << e.what() << std::endl;
     }
 }
 
@@ -125,14 +177,48 @@ void Manager::deleteemployee(sql::Connection* con, int employeeId) {
         sql::PreparedStatement* pstmt = con->prepareStatement(
             "DELETE FROM employees WHERE id = ?"
         );
-        pstmt->setInt(1, employeeId); // РЈСЃС‚Р°РЅРѕРІРєР° Р·РЅР°С‡РµРЅРёСЏ РїР°СЂР°РјРµС‚СЂР° РІ Р·Р°РїСЂРѕСЃРµ
+        pstmt->setInt(1, employeeId); // Установка значения параметра в запросе
         pstmt->execute();
         delete pstmt;
 
-        std::cout << "РЎРѕС‚СЂСѓРґРЅРёРє СЃ ID " << employeeId << " СѓСЃРїРµС€РЅРѕ СѓРґР°Р»РµРЅ." << std::endl;
+        sql::PreparedStatement* pstmtTask = con->prepareStatement(
+            "DELETE FROM task WHERE id = ?"
+        );
+        pstmtTask->setInt(1, employeeId); // Установка значения параметра в запросе
+        pstmtTask->execute();
+        delete pstmtTask;
+
+        std::cout << "Сотрудник с ID " << employeeId << " успешно удален." << std::endl;
     }
     catch (sql::SQLException& e) {
-        std::cout << "РћС€РёР±РєР° РїСЂРё СѓРґР°Р»РµРЅРёРё СЃРѕС‚СЂСѓРґРЅРёРєР° СЃ ID " << employeeId << ": " << e.what() << std::endl;
+        std::cout << "Ошибка при удалении сотрудника с ID " << employeeId << ": " << e.what() << std::endl;
+    }
+}
 
+
+void Manager::findEmployeeById(sql::Connection* con, int employeeId) {
+    try {
+        sql::Statement* stmt = con->createStatement();
+        sql::ResultSet* res = stmt->executeQuery("SELECT * FROM employees WHERE id = " + std::to_string(employeeId));
+
+        if (res->next()) {
+            std::cout << "Найден сотрудник с ID " << employeeId << ":" << std::endl;
+            std::cout << "ID: " << employeeId << std::endl;
+            std::cout << "Post: " << res->getString("post") << std::endl;
+            std::cout << "First Name: " << res->getString("first_name") << std::endl;
+            std::cout << "Last Name: " << res->getString("last_name") << std::endl;
+            std::cout << "Monthly Pay: " << res->getDouble("monthly_pay") << std::endl;
+            std::cout << "Hire Date: " << res->getString("hire_date") << std::endl;
+            std::cout << "In Staff: " << res->getString("in_staff") << std::endl;
+        }
+        else {
+            std::cout << "Сотрудник с ID " << employeeId << " не найден." << std::endl;
+        }
+
+        delete res;
+        delete stmt;
+    }
+    catch (sql::SQLException& e) {
+        std::cout << "Ошибка при поиске сотрудника с ID " << employeeId << ": " << e.what() << std::endl;
     }
 }
